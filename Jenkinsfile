@@ -7,9 +7,7 @@ pipeline {
             steps {
                 script {
                     echo "Testing the application..."
-                    echo "Testing the integration for master..."
-                    
-                    
+                    echo "Testing the integration for jenkins-jobs branch..."
                 }
             }
         }
@@ -24,6 +22,13 @@ pipeline {
             steps {
                 script {
                     echo "Deploying the application..."
+                }
+            }
+        }
+        stage('notify') {
+            steps {
+                script {
+                    echo "Sending notification to team..."
                 }
             }
         }
