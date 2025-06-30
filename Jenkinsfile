@@ -11,6 +11,7 @@ pipeline {
                 script {
                     echo "Testing the application..."
                     echo "Testing the integration for feature/payment ..."
+                    echo "Testing the integration for integration ..."
                 }
             }
         }
