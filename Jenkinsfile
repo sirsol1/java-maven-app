@@ -7,7 +7,7 @@ pipeline {
             steps {
                 script {
                     echo "Testing the application..."
-                    echo "Testing the integration for jfeature/payment branch..."
+                    echo "Testing the integration for jfeature/payment ..."
                 }
             }
         }
