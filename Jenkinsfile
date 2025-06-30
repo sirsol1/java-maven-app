@@ -8,6 +8,7 @@ pipeline {
                 script {
                     echo "Testing the application..."
                     echo "Testing the integration..."
+                    echo "Testing the MULTI..."
                 }
             }
         }
