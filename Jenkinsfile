@@ -2,17 +2,15 @@
 
 pipeline {
     agent any
-
     triggers {
         githubPush()
     }
-
     stages {
         stage('test') {
             steps {
                 script {
                     echo "Testing the application..."
-                    echo "Testing the integration for jfeature/payment ..."
+                    echo "Testing the integration for feature/payment ..."
                 }
             }
         }
