@@ -1,40 +1,38 @@
-#!/usr/bin/env groovy
-
 pipeline {
     agent any
+
     triggers {
         githubPush()
     }
-    stages {
-        stage('test') {
-            steps {
-                script {
-                    echo "Testing the application..."
-                    echo "Testing the integration for feature/payment ..."
-                    echo "Testing the integration for integration ..."
-                }
-            }
-        }
-        stage('build') {
-            steps {
-                script {
-                    echo "Building the application..."
-                }
-            }
-        }
-        stage('deploy') {
-            steps {
-                script {
-                    echo "Deploying the application..."
-                }
-            }
-        }
-        stage('notify') {
-            steps {
-                script {
-                    echo "Sending notification to team..."
-                }
-            }
-        }
+
+    environment {
+        BRANCH_NAME = "${env.GIT_BRANCH ?: 'unknown'}"
     }
-}
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo "Checking out source code from ${env.BRANCH_NAME}"
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "Building branch: ${env.BRANCH_NAME}"
+                // Replace with actual build commands, e.g., Maven or Gradle
+                sh './mvnw clean install' // or: mvn clean install
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "Running tests on branch: ${env.BRANCH_NAME}"
+                // Example test command
+                sh './mvnw test'
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                branch 'main'
