@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'maven-lts' // Make sure this matches your Maven installation name in Jenkins
-        // jdk 'jdk' // Uncomment only if a JDK is configured with this name in Global Tools
+        maven 'maven-lts' // Match the Maven installation name in Jenkins
     }
 
     environment {
@@ -21,9 +20,10 @@ pipeline {
             steps {
                 script {
                     echo 'Incrementing application version...'
-                    sh '''
+                    // Use Bash-compatible syntax and escape Maven variables
+                    sh '''#!/bin/bash
                         mvn build-helper:parse-version versions:set \
-                            -DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion} \
+                            -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementalVersion} \
                             versions:commit
                     '''
 
@@ -51,7 +51,7 @@ pipeline {
                 script {
                     echo 'Building the Docker image...'
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                        sh """
+                        sh """#!/bin/bash
                             docker build -t siresol1/my-repos:${IMAGE_NAME} .
                             echo \$PASS | docker login -u \$USER --password-stdin
                             docker push siresol1/my-repos:${IMAGE_NAME}
@@ -65,7 +65,7 @@ pipeline {
             steps {
                 script {
                     echo 'Deploying Docker image to EC2...'
-                    // Add deployment logic (e.g., SSH, ECS, Ansible, etc.)
+                    // Add your EC2 deployment logic here
                 }
             }
         }
@@ -74,14 +74,14 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                        sh '''
+                        sh """#!/bin/bash
                             git config --global user.email "jenkins@example.com"
                             git config --global user.name "jenkins"
                             git remote set-url origin https://${USER}:${PASS}@github.com/sirsol1/java-maven-app.git
                             git add .
                             git commit -m "ci: version bump" || echo "No changes to commit"
                             git push origin HEAD:jenkins-jobs
-                        '''
+                        """
                     }
                 }
             }
