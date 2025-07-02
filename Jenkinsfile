@@ -7,6 +7,7 @@ pipeline {
                 script {
                     echo "Testing the application..."
                     echo "Executing Pipeline for branch $BRANCH_NAME"
+                    echo "integrate Pipeline fo
                 }
             }
         }
