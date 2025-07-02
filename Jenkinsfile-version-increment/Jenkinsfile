@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     tools {
-        maven 'maven-lts' // Match the Maven installation name in Jenkins
+        maven 'maven-lts'
     }
 
     environment {
-        IMAGE_NAME = ''
+        IMAGE_NAME = ''  // Placeholder; we’ll update it dynamically in `script`
     }
 
     stages {
@@ -20,7 +20,6 @@ pipeline {
             steps {
                 script {
                     echo 'Incrementing application version...'
-                    // Use Bash-compatible syntax and escape Maven variables
                     sh '''#!/bin/bash
                         mvn build-helper:parse-version versions:set \
                             -DnewVersion=\\${parsedVersion.majorVersion}.\\${parsedVersion.minorVersion}.\\${parsedVersion.nextIncrementalVersion} \
@@ -31,6 +30,7 @@ pipeline {
                     def matcher = pom =~ '<version>(.+)</version>'
                     def version = matcher ? matcher[0][1] : 'latest'
 
+                    // This saves the version into the environment for future stages
                     env.IMAGE_NAME = "${version}-${env.BUILD_NUMBER}"
                     echo "New version set: ${env.IMAGE_NAME}"
                 }
@@ -49,12 +49,12 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo 'Building the Docker image...'
+                    echo "Building the Docker image with tag: ${env.IMAGE_NAME}"
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                         sh """#!/bin/bash
-                            docker build -t siresol1/my-repos:${IMAGE_NAME} .
+                            docker build -t siresol1/my-repos:${env.IMAGE_NAME} .
                             echo \$PASS | docker login -u \$USER --password-stdin
-                            docker push siresol1/my-repos:${IMAGE_NAME}
+                            docker push siresol1/my-repos:${env.IMAGE_NAME}
                         """
                     }
                 }
@@ -64,8 +64,8 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 script {
-                    echo 'Deploying Docker image to EC2...'
-                    // Add your EC2 deployment logic here
+                    echo "Deploying Docker image: siresol1/my-repos:${env.IMAGE_NAME} to EC2..."
+                    // You can add SSH or Ansible deployment logic here
                 }
             }
         }
