@@ -6,25 +6,6 @@ pipeline {
     }
 
     stages {
-        stage('test') {
-            steps {
-                echo "Testing the application..."
-            }
-        }
-
-        stage('build') {
-            steps {
-                script {
-                    echo "Building the application..."
-                    sh "docker build -t ${IMAGE_NAME} ."
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-                        sh "docker push ${IMAGE_NAME}"
-                    }
-                }
-            }
-        }
-
         stage('deploy') {
             steps {
                 script {
