@@ -1,38 +1,30 @@
 pipeline {
     agent any
 
-    triggers {
-        githubPush()
-    }
-
-    environment {
-        BRANCH_NAME = "${env.GIT_BRANCH ?: 'unknown'}"
-    }
-
     stages {
-        stage('Checkout') {
+        stage('test') {
             steps {
-                echo "Checking out source code from ${env.BRANCH_NAME}"
-                checkout scm
+                echo "Testing the application..."
             }
         }
 
-        stage('Build') {
+        stage('build') {
             steps {
-                echo "Building branch: ${env.BRANCH_NAME}"
-                // Replace with actual build commands, e.g., Maven or Gradle
-                sh './mvnw clean install' // or: mvn clean install
+                script {
+                    echo "Building the application..."
+                }
             }
         }
 
-        stage('Test') {
+        stage('deploy') {
             steps {
-                echo "Running tests on branch: ${env.BRANCH_NAME}"
-                // Example test command
-                sh './mvnw test'
+                script {
+                    def dockerCmd = 'docker run -p 3000:3000 -d siresol/demo-app:1.0'
+                    sshagent(['ec2-server-key']) {
+                        sh "ssh -o StrictHostKeyChecking=no ec2-user@18.234.239.14 ${dockerCmd}"
+                    }
+                }
             }
         }
-
-        stage('Deploy') {
-            when {
-                branch 'main'
+    }
+}
