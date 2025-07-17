@@ -19,7 +19,7 @@ pipeline {
         stage('deploy') {
             steps {
                 script {
-                    def dockerCmd = 'docker run -p 3000:3000 -d siresol/demo-app:1.0'
+                    def dockerCmd = 'docker run -p 3000:3000 -d siresol/demo-app:v1.0'
                     sshagent(['ec2-server-key']) {
                         sh "ssh -o StrictHostKeyChecking=no ec2-user@18.234.239.14 ${dockerCmd}"
                     }
