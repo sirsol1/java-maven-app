@@ -1,33 +1,20 @@
-pipeline {
-    agent any
+sh """
+ssh -o StrictHostKeyChecking=no ec2-user@${EC2_PUBLIC_IP} << EOF
+    docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+    docker pull ${IMAGE_NAME}
 
-    environment {
-        IMAGE_NAME = 'siresol1/my-repos:v1.0'
-        EC2_HOST = 'ec2-user@18.234.239.14'
-        APP_PORT = '3080'
-        CONTAINER_PORT = '3000'
-        CONTAINER_NAME = 'my-repos'
-    }
-
-    stages {
-        stage('deploy') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        def dockerCmd = """
-                            docker stop ${CONTAINER_NAME} || true
-                            docker rm ${CONTAINER_NAME} || true
-                            docker login -u $DOCKER_USER -p $DOCKER_PASS &&
-                            docker pull ${IMAGE_NAME} &&
-                            docker run --name ${CONTAINER_NAME} -p ${APP_PORT}:${CONTAINER_PORT} -d ${IMAGE_NAME}
-                        """.stripIndent().trim()
-
-                        sshagent(['ec2-server-key']) {
-                            sh "ssh -o StrictHostKeyChecking=no ${EC2_HOST} '${dockerCmd}'"
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+    # Check if container is already running
+    if [ \$(docker ps -q -f name=${CONTAINER_NAME}) ]; then
+        echo "Container '${CONTAINER_NAME}' is already running. Skipping docker run."
+    else
+        # Check if container exists but is stopped
+        if [ \$(docker ps -a -q -f name=${CONTAINER_NAME}) ]; then
+            echo "Container '${CONTAINER_NAME}' exists but is not running. Starting it..."
+            docker start ${CONTAINER_NAME}
+        else
+            echo "Container '${CONTAINER_NAME}' not found. Running a new one..."
+            docker run --name ${CONTAINER_NAME} -p 3080:3000 -d ${IMAGE_NAME}
+        fi
+    fi
+EOF
+"""
